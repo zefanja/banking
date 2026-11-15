@@ -109,7 +109,7 @@ function BalanceEditor({ data, onSaved }: { data: AppData; onSaved: () => void }
         </div>
         <div className="w-36">
           <label className="label">Betrag</label>
-          <MoneyInput value={amount} onCommit={setAmount} />
+          <MoneyInput value={amount} onCommit={setAmount} live />
         </div>
         <button className="btn-primary py-1.5" disabled={!date} onClick={async () => { await setMeta('balanceAnchor', { date, amount }); onSaved() }}>
           Speichern

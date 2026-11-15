@@ -9,6 +9,20 @@ import { applyTheme } from './lib/theme'
 requestPersistence()
 applyTheme()
 
+// iOS: Ein Tipp außerhalb eines Eingabefelds schließt die Tastatur nicht von selbst.
+// Deshalb das Feld aktiv verlassen, damit Beträge übernommen werden, bevor der Button-Klick ankommt.
+document.addEventListener(
+  'touchstart',
+  (e) => {
+    const active = document.activeElement
+    if (!(active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement)) return
+    const target = e.target as Element | null
+    if (target?.closest('input, textarea, select, label')) return
+    active.blur()
+  },
+  { passive: true, capture: true },
+)
+
 // Service Worker für Offline-Start und Installation als App (nur im Build, nicht im Dev-Server)
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => {

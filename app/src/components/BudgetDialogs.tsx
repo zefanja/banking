@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { ArrowRight, Sparkles } from 'lucide-react'
+import { ArrowDown, ArrowRight, Sparkles } from 'lucide-react'
 import type { Transaction } from '../lib/db'
 import type { AppData } from '../lib/hooks'
 import { computeBudget, type EnvelopeRow } from '../lib/budget'
@@ -82,14 +82,15 @@ export function MoveDialog({
       }
     >
       <div className="space-y-4">
-        <div className="grid grid-cols-[1fr_auto_1fr] items-end gap-2">
+        <div className="grid gap-2 sm:grid-cols-[1fr_auto_1fr] sm:items-end">
           <div>
             <label className="label">Von</label>
             <select className="input" value={from ?? 'rta'} onChange={(e) => setFrom(e.target.value === 'rta' ? null : Number(e.target.value))}>
               {options(null)}
             </select>
           </div>
-          <ArrowRight className="mb-2.5 text-slate-400" size={18} />
+          <ArrowRight className="mb-2.5 hidden text-slate-400 sm:block" size={18} />
+          <ArrowDown className="mx-auto -my-1 text-slate-400 sm:hidden" size={16} />
           <div>
             <label className="label">Nach</label>
             <select className="input" value={to ?? 'rta'} onChange={(e) => setTo(e.target.value === 'rta' ? null : Number(e.target.value))}>
@@ -99,7 +100,7 @@ export function MoveDialog({
         </div>
         <div>
           <label className="label">Betrag</label>
-          <MoneyInput value={amount} onCommit={setAmount} className="text-lg" />
+          <MoneyInput value={amount} onCommit={setAmount} className="text-lg" live />
           <div className="mt-2 flex flex-wrap gap-2 text-xs">
             {avail(from) > 0 && (
               <button className="rounded-full bg-slate-100 px-2.5 py-1 hover:bg-slate-200" onClick={() => setAmount(avail(from))}>
@@ -234,10 +235,10 @@ export function AllocateDialog({ tx, onClose, data }: { tx: Transaction | null; 
                   const id = r.category.id!
                   const v = parts.get(id) ?? 0
                   return (
-                    <div key={id} className="flex items-center gap-3">
-                      <span className="flex-1 truncate text-sm">
+                    <div key={id} className="flex items-center gap-2 sm:gap-3">
+                      <span className="min-w-0 flex-1 text-sm sm:truncate">
                         {r.category.icon} {r.category.name}
-                        <span className={cx('num ml-2 text-xs', r.available < 0 ? 'text-rose-600' : 'text-slate-400')}>
+                        <span className={cx('num block text-xs sm:ml-2 sm:inline', r.available < 0 ? 'text-rose-600' : 'text-slate-400')}>
                           verfügbar {money(r.available)}
                           {r.category.goal > 0 && ` · Ziel ${money(r.category.goal)}`}
                         </span>
@@ -247,7 +248,7 @@ export function AllocateDialog({ tx, onClose, data }: { tx: Transaction | null; 
                           + Rest
                         </button>
                       )}
-                      <MoneyInput value={v} onCommit={(c) => set(id, c)} className="w-32" />
+                      <MoneyInput value={v} onCommit={(c) => set(id, c)} className="w-28 shrink-0 sm:w-32" live />
                     </div>
                   )
                 })}

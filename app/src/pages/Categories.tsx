@@ -238,7 +238,7 @@ function CategoryDialog({ cat, onClose, data }: { cat: Partial<Category> | null;
         {c.kind === 'expense' && (
           <div>
             <label className="label">Monatsziel (optional)</label>
-            <MoneyInput value={c.goal ?? 0} onCommit={(v) => setC({ ...c, goal: v })} />
+            <MoneyInput value={c.goal ?? 0} onCommit={(v) => setC({ ...c, goal: v })} live />
             <p className="mt-1 text-xs text-slate-400">Wie viel soll jeden Monat in diesen Umschlag? Wird für „Ziele zuweisen“ genutzt.</p>
           </div>
         )}

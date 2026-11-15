@@ -23,9 +23,9 @@ export function Dialog({
   }, [open, onClose])
   if (!open) return null
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-4 backdrop-blur-[2px] sm:items-center" onMouseDown={onClose}>
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur-[2px] sm:items-center" onMouseDown={onClose}>
       <div
-        className={cx('card max-h-[90vh] w-full overflow-hidden flex flex-col animate-[pop_.15s_ease-out]', wide ? 'max-w-2xl' : 'max-w-md')}
+        className={cx('card max-h-[90vh] max-h-[90dvh] w-full overflow-hidden flex flex-col animate-[pop_.15s_ease-out]', wide ? 'max-w-2xl' : 'max-w-md')}
         onMouseDown={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
@@ -64,7 +64,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastCtx.Provider value={push}>
       {children}
-      <div className="pointer-events-none fixed bottom-4 left-4 z-[60] flex w-full max-w-sm flex-col gap-2">
+      <div className="pointer-events-none fixed inset-x-4 top-[calc(72px+env(safe-area-inset-top))] z-[60] flex flex-col gap-2 sm:inset-x-auto sm:top-auto sm:bottom-4 sm:left-4 sm:w-full sm:max-w-sm">
         {toasts.map((t) => (
           <div
             key={t.id}
@@ -189,29 +189,35 @@ export function CategorySelect({
   )
 }
 
+/** "12,50" → 1250 Cent. Kleine Rechenhilfe: "50+20" oder "100-15,5". Ungültig → null. */
+export function parseMoney(text: string): number | null {
+  const expr = text.replace(/\s/g, '')
+  if (expr === '') return 0
+  if (!/^[-+]?[\d.,]+([+-][\d.,]+)*$/.test(expr)) return null
+  const parts = expr.match(/[-+]?[\d.,]+/g) ?? []
+  const cents = parts.reduce((s, p) => s + Math.round(Number(p.replace(/\./g, '').replace(',', '.')) * 100), 0)
+  return Number.isFinite(cents) ? cents : null
+}
+
 export function MoneyInput({
-  value, onCommit, className, autoFocus,
+  value, onCommit, className, autoFocus, live,
 }: {
   value: number
   onCommit: (cents: number) => void
   className?: string
   autoFocus?: boolean
+  /**
+   * Wert schon beim Tippen melden (für Dialoge). Wichtig auf iOS: Ein Tipp auf einen Button
+   * nimmt dem Feld dort nicht den Fokus – ohne "live" käme der Betrag sonst nie an.
+   */
+  live?: boolean
 }) {
   const [text, setText] = useState<string | null>(null)
   const display = text ?? (value === 0 ? '' : (value / 100).toFixed(2).replace('.', ','))
   const commit = () => {
     if (text === null) return
-    const expr = text.replace(/\s/g, '')
-    // Kleine Rechenhilfe: "50+20" oder "100-15,5"
-    let cents: number | null = null
-    if (/^[-+]?[\d.,]+([+-][\d.,]+)*$/.test(expr)) {
-      const parts = expr.match(/[-+]?[\d.,]+/g) ?? []
-      cents = parts.reduce((s, p) => {
-        const n = Number(p.replace(/\./g, '').replace(',', '.'))
-        return s + Math.round(n * 100)
-      }, 0)
-    } else if (expr === '') cents = 0
-    if (cents !== null && Number.isFinite(cents)) onCommit(cents)
+    const cents = parseMoney(text)
+    if (cents !== null && cents !== value) onCommit(cents)
     setText(null)
   }
   return (
@@ -225,7 +231,13 @@ export function MoneyInput({
         setText(display)
         requestAnimationFrame(() => e.target.select())
       }}
-      onChange={(e) => setText(e.target.value)}
+      onChange={(e) => {
+        setText(e.target.value)
+        if (live) {
+          const cents = parseMoney(e.target.value)
+          if (cents !== null) onCommit(cents)
+        }
+      }}
       onBlur={commit}
       onKeyDown={(e) => {
         if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
