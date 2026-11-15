@@ -26,6 +26,17 @@ verlassen nie dein Gerät. Die Daten unter `github.io` sind aber getrennt von de
 
 CSV-Dateien und Backups sind per `.gitignore` vom Commit ausgeschlossen.
 
+## Als App installieren (PWA)
+
+Die App ist eine Progressive Web App: Sie lässt sich auf dem Startbildschirm installieren und startet danach auch offline.
+
+- **iPhone/iPad (Safari):** Teilen → *Zum Home-Bildschirm*
+- **Android (Chrome):** Menü → *App installieren*
+- **Desktop (Chrome/Edge):** Installations-Symbol in der Adressleiste
+
+Der Service Worker (`sw.js`) wird beim Build erzeugt und speichert alle Programmdateien vorab. Updates kommen beim nächsten
+Start mit Internetverbindung automatisch an. Die Icons liegen unter `public/icons/` (Vorlage: `public/icons/icon.svg`).
+
 ## Funktionen
 
 - **Import** von DKB-Umsatzlisten als CSV (Online-Banking) oder als PDF-Export aus der DKB-App, auch mehrere Dateien gleichzeitig.

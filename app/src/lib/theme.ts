@@ -23,6 +23,8 @@ function resolve(pref: ThemePref) {
 export function applyTheme() {
   const dark = resolve(readPref())
   document.documentElement.classList.toggle('dark', dark)
+  // Statusleiste/Titelleiste der installierten App an das Theme anpassen
+  document.querySelectorAll('meta[name="theme-color"]').forEach((m) => m.setAttribute('content', dark ? '#131c2e' : '#ffffff'))
   listeners.forEach((l) => l())
 }
 

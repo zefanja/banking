@@ -68,7 +68,12 @@ export default function App() {
   )
 
   const brand = (
-    <div className="flex items-center gap-3 px-2">
+    <a
+      href="#/uebersicht"
+      onClick={() => { setMobileOpen(false); document.querySelector('main')?.scrollTo({ top: 0 }) }}
+      aria-label="Zur Übersicht"
+      className="flex items-center gap-3 rounded-2xl px-2 transition active:opacity-70"
+    >
       <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-[#14b8a6] to-[#0f766e] text-white shadow-md shadow-brand-600/20">
         <Wallet size={20} />
       </div>
@@ -76,7 +81,7 @@ export default function App() {
         <div className="font-semibold leading-tight text-slate-900">Haushaltsbuch</div>
         <div className="text-xs text-slate-500">100 % lokal</div>
       </div>
-    </div>
+    </a>
   )
 
   return (
@@ -94,20 +99,22 @@ export default function App() {
       </aside>
 
       {/* Mobile */}
-      <div className="fixed inset-x-0 top-0 z-40 flex items-center justify-between border-b border-slate-200 bg-surface/90 px-4 py-3 backdrop-blur lg:hidden">
+      <div className="safe-top fixed inset-x-0 top-0 z-40 border-b border-slate-200 bg-surface/90 backdrop-blur lg:hidden">
+        <div className="flex h-16 items-center justify-between px-4">
         {brand}
         <button className="btn-ghost p-2" onClick={() => setMobileOpen((v) => !v)} aria-label="Menü">
           {mobileOpen ? <X size={20} /> : <Menu size={20} />}
         </button>
+        </div>
       </div>
       {mobileOpen && (
-        <div className="fixed inset-x-0 top-[65px] z-40 border-b border-slate-200 bg-surface p-3 shadow-lg lg:hidden">
+        <div className="fixed inset-x-0 top-[calc(65px+env(safe-area-inset-top))] z-40 max-h-[calc(100dvh-65px-env(safe-area-inset-top))] overflow-y-auto border-b border-slate-200 bg-surface p-3 shadow-lg lg:hidden">
           {nav}
           <ThemeToggle className="mt-3 flex" />
         </div>
       )}
 
-      <main className="flex-1 overflow-y-auto pt-[65px] lg:pt-0">
+      <main className="safe-bottom flex-1 overflow-y-auto pt-[calc(65px+env(safe-area-inset-top))] lg:pt-0">
         <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-10 lg:py-10">{page}</div>
       </main>
     </div>
