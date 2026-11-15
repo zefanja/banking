@@ -81,7 +81,7 @@ export default function Analysis({ data }: { data: AppData }) {
     <>
       <PageHeader title="Auswertung" subtitle={year ? `Jahr ${year}` : 'Alle Jahre'}>{controls}</PageHeader>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <Stat label="Einnahmen" value={<span className="text-emerald-600">{money(income)}</span>} hint={`Ø ${money(Math.round(income / n))} pro ${unit}`} />
         <Stat label="Ausgaben" value={<span className="text-rose-600">{money(expense)}</span>} hint={`Ø ${money(Math.round(expense / n))} pro ${unit}`} />
         <Stat label="Saldo" value={<Amount value={income - expense} plus />} hint={`${rows.filter((r) => r.net >= 0).length} von ${rows.length} Perioden im Plus`} />
@@ -117,13 +117,13 @@ export default function Analysis({ data }: { data: AppData }) {
 
       <div className="card mt-6 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[560px] text-sm">
+          <table className="w-full text-sm sm:min-w-[560px]">
             <thead>
               <tr className="border-b border-slate-100 text-left text-xs uppercase tracking-wide text-slate-400">
-                <th className="px-4 py-3 font-medium">Kategorie</th>
+                <th className="px-3 py-3 font-medium sm:px-4">Kategorie</th>
                 <th className="px-4 py-3 text-right font-medium">Summe</th>
-                <th className="px-4 py-3 text-right font-medium">Ø pro {unit}</th>
-                <th className="w-48 px-4 py-3 font-medium">Anteil</th>
+                <th className="hidden px-4 py-3 text-right font-medium sm:table-cell">Ø pro {unit}</th>
+                <th className="w-24 px-3 py-3 font-medium sm:w-48 sm:px-4">Anteil</th>
               </tr>
             </thead>
             <tbody>
@@ -133,13 +133,13 @@ export default function Analysis({ data }: { data: AppData }) {
                 return (
                   <tr key={String(id)} className="cursor-pointer border-b border-slate-50 hover:bg-slate-50/70"
                     onClick={() => navigate('buchungen', { cat: id == null ? 'none' : String(id), ...(year ? { month: year } : {}) })}>
-                    <td className="px-4 py-2.5">
+                    <td className="px-3 py-2.5 sm:px-4">
                       <span className="mr-2">{c?.icon ?? '❔'}</span>
                       <span className="font-medium">{catName(id)}</span>
                     </td>
-                    <td className="num px-4 py-2.5 text-right font-medium">{money(v)}</td>
-                    <td className="num px-4 py-2.5 text-right text-slate-500">{money(Math.round(v / n))}</td>
-                    <td className="px-4 py-2.5">
+                    <td className="num whitespace-nowrap px-2 py-2.5 text-right font-medium sm:px-4">{money(v)}</td>
+                    <td className="num hidden px-4 py-2.5 text-right text-slate-500 sm:table-cell">{money(Math.round(v / n))}</td>
+                    <td className="px-3 py-2.5 sm:px-4">
                       <div className="flex items-center gap-2">
                         <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100">
                           <div className="h-full rounded-full" style={{ width: `${Math.max(0, pct)}%`, background: catColor(id) }} />
@@ -159,34 +159,34 @@ export default function Analysis({ data }: { data: AppData }) {
       <h2 className="mb-3 mt-8 text-lg font-semibold">Verlauf als Tabelle</h2>
       <div className="card overflow-hidden">
         <div className="max-h-[520px] overflow-auto">
-          <table className="w-full min-w-[560px] text-sm">
+          <table className="w-full text-xs sm:min-w-[560px] sm:text-sm">
             <thead className="sticky top-0 bg-surface">
               <tr className="border-b border-slate-100 text-left text-xs uppercase tracking-wide text-slate-400">
-                <th className="px-4 py-3 font-medium">{unit}</th>
-                <th className="px-4 py-3 text-right font-medium">Einnahmen</th>
-                <th className="px-4 py-3 text-right font-medium">Ausgaben</th>
-                <th className="px-4 py-3 text-right font-medium">Saldo</th>
-                <th className="px-4 py-3 text-right font-medium">Kumuliert</th>
+                <th className="px-2 sm:px-4 py-3 font-medium">{unit}</th>
+                <th className="px-2 sm:px-4 py-3 text-right font-medium">Einnahmen</th>
+                <th className="px-2 sm:px-4 py-3 text-right font-medium">Ausgaben</th>
+                <th className="px-2 sm:px-4 py-3 text-right font-medium">Saldo</th>
+                <th className="hidden px-4 py-3 text-right font-medium sm:table-cell">Kumuliert</th>
               </tr>
             </thead>
             <tbody>
               {[...tableRows].reverse().map((r) => (
                 <tr key={r.key} className={cx('border-b border-slate-50 hover:bg-slate-50/70', !r.income && !r.expense && 'text-slate-300')}>
-                  <td className="px-4 py-2.5 font-medium capitalize">{periodLabel(r.key, g, true)}</td>
-                  <td className="num px-4 py-2.5 text-right text-emerald-600">{r.income ? money(r.income) : '–'}</td>
-                  <td className="num px-4 py-2.5 text-right text-rose-600">{r.expense ? money(r.expense) : '–'}</td>
-                  <td className="px-4 py-2.5 text-right"><Amount value={r.net} plus /></td>
-                  <td className="px-4 py-2.5 text-right"><Amount value={r.cumulative} plus className="text-xs" /></td>
+                  <td className="px-2 sm:px-4 py-2.5 font-medium capitalize max-sm:text-xs">{periodLabel(r.key, g, true)}</td>
+                  <td className="num px-2 sm:px-4 py-2.5 text-right whitespace-nowrap text-emerald-600">{r.income ? money(r.income) : '–'}</td>
+                  <td className="num px-2 sm:px-4 py-2.5 text-right whitespace-nowrap text-rose-600">{r.expense ? money(r.expense) : '–'}</td>
+                  <td className="px-2 sm:px-4 py-2.5 text-right"><Amount value={r.net} plus className="whitespace-nowrap" /></td>
+                  <td className="hidden px-4 py-2.5 text-right sm:table-cell"><Amount value={r.cumulative} plus className="text-xs" /></td>
                 </tr>
               ))}
             </tbody>
             <tfoot className="sticky bottom-0 bg-slate-50 font-semibold">
               <tr>
-                <td className="px-4 py-3">Gesamt</td>
-                <td className="num px-4 py-3 text-right text-emerald-600">{money(income)}</td>
-                <td className="num px-4 py-3 text-right text-rose-600">{money(expense)}</td>
-                <td className="px-4 py-3 text-right"><Amount value={income - expense} plus /></td>
-                <td />
+                <td className="px-2 sm:px-4 py-3">Gesamt</td>
+                <td className="num px-2 sm:px-4 py-3 text-right text-emerald-600">{money(income)}</td>
+                <td className="num px-2 sm:px-4 py-3 text-right text-rose-600">{money(expense)}</td>
+                <td className="px-2 sm:px-4 py-3 text-right"><Amount value={income - expense} plus /></td>
+                <td className="hidden sm:table-cell" />
               </tr>
             </tfoot>
           </table>

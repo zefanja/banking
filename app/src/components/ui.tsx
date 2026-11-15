@@ -247,12 +247,12 @@ export function Stat({ label, value, hint, icon, tone = 'slate' }: { label: stri
     amber: 'bg-amber-50 text-amber-600',
   }
   return (
-    <div className="card p-5">
-      <div className="flex items-center justify-between">
-        <span className="text-sm text-slate-500">{label}</span>
-        {icon && <span className={cx('flex h-8 w-8 items-center justify-center rounded-xl', tones[tone])}>{icon}</span>}
+    <div className="card p-4 sm:p-5">
+      <div className="flex items-center justify-between gap-2">
+        <span className="min-w-0 truncate text-xs text-slate-500 sm:text-sm">{label}</span>
+        {icon && <span className={cx('flex h-7 w-7 shrink-0 items-center justify-center rounded-xl sm:h-8 sm:w-8', tones[tone])}>{icon}</span>}
       </div>
-      <div className="mt-2 text-2xl font-semibold tracking-tight">{value}</div>
+      <div className="mt-2 text-lg font-semibold tracking-tight [overflow-wrap:anywhere] sm:text-2xl">{value}</div>
       {hint && <div className="mt-1 text-xs text-slate-500">{hint}</div>}
     </div>
   )

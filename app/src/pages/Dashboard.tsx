@@ -68,7 +68,7 @@ export default function Dashboard({ data }: { data: AppData }) {
         </div>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <Stat label="Kontostand" value={money(data.balance)} icon={<Wallet size={16} />} tone="brand" />
         <Stat label={`Einnahmen ${fmtMonth(latestMonth).split(' ')[0]}`} value={<span className="text-emerald-600">{money(cur.income)}</span>} icon={<ArrowUpRight size={16} />} tone="emerald" />
         <Stat label={`Ausgaben ${fmtMonth(latestMonth).split(' ')[0]}`} value={<span className="text-rose-600">{money(cur.expense)}</span>} icon={<ArrowDownRight size={16} />} tone="rose"

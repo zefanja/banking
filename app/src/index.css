@@ -71,6 +71,39 @@ body,
   height: 100%;
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  overscroll-behavior: none;
+}
+
+/* Grid-/Flex-Kinder dürfen schmaler als ihr Inhalt werden (sonst sprengen Tabellen/Charts die Breite) */
+.grid > *,
+main {
+  min-width: 0;
+}
+
+/* iOS zoomt beim Fokussieren von Feldern mit < 16px Schrift – das verhindern wir auf kleinen Displays */
+@media (max-width: 639px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* Sichere Bereiche (Notch, Home-Indikator) in der installierten PWA */
+.safe-top {
+  padding-top: env(safe-area-inset-top);
+}
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
 body {
   @apply bg-slate-50 text-slate-800 antialiased transition-colors;
   font-feature-settings: 'tnum' 1, 'cv11' 1;

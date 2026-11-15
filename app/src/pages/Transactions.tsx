@@ -164,7 +164,7 @@ export default function Transactions({ data, params }: { data: AppData; params: 
       {selected.size > 0 && (
         <div className="sticky top-[70px] z-30 mb-3 flex flex-wrap items-center gap-3 rounded-2xl bg-ink px-4 py-2.5 text-sm text-white shadow-lg lg:top-2">
           <span><b>{selected.size}</b> ausgewählt</span>
-          <div className="w-64 text-slate-800">
+          <div className="w-full text-slate-800 sm:w-64">
             <CategorySelect value={null} onChange={bulkSet} categories={data.categories} groups={data.groups} emptyLabel="Kategorie zuweisen …" />
           </div>
           <button className="ml-auto text-white/70 hover:text-white" onClick={() => setSelected(new Set())}>Auswahl aufheben</button>
@@ -173,17 +173,17 @@ export default function Transactions({ data, params }: { data: AppData; params: 
 
       <div className="card overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[720px] text-sm">
+          <table className="w-full text-sm sm:min-w-[720px]">
             <thead>
               <tr className="border-b border-slate-100 text-left text-xs uppercase tracking-wide text-slate-400">
-                <th className="w-10 px-4 py-3">
+                <th className="w-10 py-3 pl-3 pr-1 sm:px-4">
                   <input type="checkbox" className="accent-brand-600" checked={allSelected}
                     onChange={() => setSelected(allSelected ? new Set() : new Set(visible.map((t) => t.id)))} />
                 </th>
-                <th className="w-28 px-2 py-3 font-medium">Datum</th>
-                <th className="px-2 py-3 font-medium">Empfänger / Zweck</th>
-                <th className="w-60 px-2 py-3 font-medium">Kategorie</th>
-                <th className="w-32 px-4 py-3 text-right font-medium">Betrag</th>
+                <th className="hidden w-28 px-2 py-3 font-medium sm:table-cell">Datum</th>
+                <th className="px-2 py-3 font-medium"><span className="sm:hidden">Buchung</span><span className="hidden sm:inline">Empfänger / Zweck</span></th>
+                <th className="hidden w-60 px-2 py-3 font-medium sm:table-cell">Kategorie</th>
+                <th className="w-px py-3 pl-1 pr-3 text-right font-medium sm:w-32 sm:px-4">Betrag</th>
               </tr>
             </thead>
             <tbody>
@@ -194,26 +194,30 @@ export default function Transactions({ data, params }: { data: AppData; params: 
                 return (
                   <Fragment key={t.id}>
                     <tr className={cx('border-b border-slate-50 transition hover:bg-slate-50/70', selected.has(t.id) && 'bg-brand-50/50', t.categoryId == null && 'bg-amber-50/30')}>
-                      <td className="px-4 py-2.5">
+                      <td className="py-2.5 pl-3 pr-1 align-top sm:px-4 sm:align-middle">
                         <input type="checkbox" className="accent-brand-600" checked={selected.has(t.id)}
                           onChange={() => setSelected((s) => { const n = new Set(s); if (n.has(t.id)) n.delete(t.id); else n.add(t.id); return n })} />
                       </td>
-                      <td className="num px-2 py-2.5 text-slate-500">{fmtDate(t.date)}</td>
+                      <td className="num hidden px-2 py-2.5 text-slate-500 sm:table-cell">{fmtDate(t.date)}</td>
                       <td className="max-w-0 px-2 py-2.5">
                         <button className="flex w-full min-w-0 items-center gap-1.5 text-left" onClick={() => setExpanded(isOpen ? null : t.id)}>
                           <div className="min-w-0 flex-1">
                             <div className="truncate font-medium text-slate-800">{t.counterparty || '—'}</div>
-                            <div className="truncate text-xs text-slate-500">{t.purpose || t.type}{t.note && <span className="text-brand-700"> · 📝 {t.note}</span>}</div>
+                            <div className="truncate text-xs text-slate-500"><span className="sm:hidden">{fmtDate(t.date)} · </span>{t.purpose || t.type}{t.note && <span className="text-brand-700"> · 📝 {t.note}</span>}</div>
                           </div>
                           <ChevronDown size={14} className={cx('shrink-0 text-slate-300 transition', isOpen && 'rotate-180')} />
                         </button>
+                        <div className="mt-1.5 sm:hidden">
+                          <CategorySelect value={t.categoryId} onChange={(id) => setCategory(t, id)} categories={data.categories} groups={data.groups}
+                            className={cx('py-1.5', t.categoryId == null && 'border-amber-300 bg-amber-50')} />
+                        </div>
                       </td>
-                      <td className="px-2 py-2">
+                      <td className="hidden px-2 py-2 sm:table-cell">
                         <CategorySelect value={t.categoryId} onChange={(id) => setCategory(t, id)} categories={data.categories} groups={data.groups}
                           className={t.categoryId == null ? 'border-amber-300 bg-amber-50' : ''} />
                       </td>
-                      <td className="px-4 py-2.5 text-right">
-                        <Amount value={t.amount} plus className="font-semibold" />
+                      <td className="py-2.5 pl-1 pr-3 text-right align-top sm:px-4 sm:align-middle">
+                        <Amount value={t.amount} plus className="whitespace-nowrap font-semibold" />
                         {income && (
                           <button onClick={() => setAllocTx(t)} className={cx('mt-0.5 block w-full whitespace-nowrap text-right text-[11px]', open === 0 ? 'text-emerald-600' : 'font-medium text-amber-700 hover:underline')}>
                             {open === 0 ? <span className="inline-flex items-center gap-0.5"><CheckCircle2 size={11} /> verteilt</span> : `${money(open)} verteilen →`}
@@ -249,8 +253,8 @@ function DetailRow({ t, onRule }: { t: Transaction; onRule: () => void }) {
   ) : null
   return (
     <tr className="border-b border-slate-100 bg-slate-50/60">
-      <td />
-      <td colSpan={4} className="px-2 py-3">
+      <td className="hidden sm:table-cell" />
+      <td colSpan={5} className="px-3 py-3 sm:px-2">
         <div className="grid gap-3 text-xs sm:grid-cols-3">
           {field('Zahlungspflichtige*r', t.payer)}
           {field('Zahlungsempfänger*in', t.payee)}

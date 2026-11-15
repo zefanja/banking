@@ -9,6 +9,13 @@ import { applyTheme } from './lib/theme'
 requestPersistence()
 applyTheme()
 
+// Service Worker für Offline-Start und Installation als App (nur im Build, nicht im Dev-Server)
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch((e) => console.warn('Service Worker nicht registriert:', e))
+  })
+}
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ToastProvider>

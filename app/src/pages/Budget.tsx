@@ -72,7 +72,7 @@ export default function Budget({ data }: { data: AppData }) {
       {/* Zu verteilen */}
       <div
         className={cx(
-          'mb-6 flex flex-wrap items-center gap-4 rounded-2xl p-5 text-white shadow-md',
+          'mb-6 flex flex-wrap items-center gap-4 rounded-2xl p-4 text-white shadow-md sm:p-5',
           rtaTone === 'ok' && 'bg-gradient-to-br from-emerald-500 to-brand-600 shadow-emerald-600/20',
           rtaTone === 'todo' && 'bg-gradient-to-br from-amber-400 to-orange-500 shadow-amber-500/20',
           rtaTone === 'over' && 'bg-gradient-to-br from-rose-500 to-pink-600 shadow-rose-600/20',
@@ -83,7 +83,7 @@ export default function Budget({ data }: { data: AppData }) {
         </div>
         <div className="flex-1">
           <div className="text-sm text-white/85">Zu verteilen</div>
-          <div className="num text-3xl font-semibold tracking-tight">{money(rta)}</div>
+          <div className="num text-2xl font-semibold tracking-tight sm:text-3xl">{money(rta)}</div>
           <div className="mt-0.5 text-sm text-white/85">
             {rtaTone === 'ok' && 'Perfekt – jeder Euro hat einen Job.'}
             {rtaTone === 'todo' && 'Dieses Geld wartet noch auf einen Job. Weise es Umschlägen zu.'}
@@ -104,7 +104,7 @@ export default function Budget({ data }: { data: AppData }) {
         </div>
       </div>
 
-      <div className="mb-6 grid gap-4 sm:grid-cols-3">
+      <div className="mb-6 grid grid-cols-3 gap-2 sm:gap-4">
         <MiniStat label="Einnahmen im Monat" value={money(budget.incomeThisMonth)} tone="text-emerald-600" />
         <MiniStat label="Zugewiesen im Monat" value={money(budget.assignedThisMonth)} />
         <MiniStat label="Ausgaben aus Umschlägen" value={money(budget.activityThisMonth)} tone={budget.activityThisMonth < 0 ? 'text-rose-600' : ''} />
@@ -143,13 +143,13 @@ export default function Budget({ data }: { data: AppData }) {
             </div>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[560px] text-sm">
+            <table className="w-full text-sm sm:min-w-[560px]">
               <thead>
                 <tr className="text-left text-xs uppercase tracking-wide text-slate-400">
-                  <th className="px-4 py-2 font-medium">Umschlag</th>
-                  <th className="w-36 px-2 py-2 text-right font-medium">Zugewiesen</th>
-                  <th className="w-32 px-2 py-2 text-right font-medium">Aktivität</th>
-                  <th className="w-40 px-4 py-2 text-right font-medium">Verfügbar</th>
+                  <th className="py-2 pl-3 pr-1 font-medium sm:px-4">Umschlag</th>
+                  <th className="w-28 px-1 py-2 text-right font-medium sm:w-36 sm:px-2">Zugewiesen</th>
+                  <th className="hidden w-32 px-2 py-2 text-right font-medium sm:table-cell">Aktivität</th>
+                  <th className="w-px py-2 pl-1 pr-3 text-right font-medium sm:w-40 sm:px-4">Verfügbar</th>
                 </tr>
               </thead>
               {data.groups.filter((g) => g.kind === 'expense').map((g) => {
@@ -159,39 +159,42 @@ export default function Budget({ data }: { data: AppData }) {
                 return (
                   <tbody key={g.id} className="border-t border-slate-100">
                     <tr className="bg-slate-50/70 text-xs font-semibold text-slate-500">
-                      <td className="px-4 py-2">{g.name}</td>
-                      <td className="num px-2 py-2 text-right">{money(sum('assigned'))}</td>
-                      <td className="num px-2 py-2 text-right">{money(sum('activity'))}</td>
-                      <td className="num px-4 py-2 text-right">{money(sum('available'))}</td>
+                      <td className="py-2 pl-3 pr-1 sm:px-4">{g.name}</td>
+                      <td className="num px-1 py-2 text-right sm:px-2">{money(sum('assigned'))}</td>
+                      <td className="num hidden px-2 py-2 text-right sm:table-cell">{money(sum('activity'))}</td>
+                      <td className="num py-2 pl-1 pr-3 text-right sm:px-4">{money(sum('available'))}</td>
                     </tr>
                     {rows.map((r) => {
                       const goal = r.category.goal
                       const progress = goal > 0 ? Math.min(100, (r.assigned / goal) * 100) : null
                       return (
                         <tr key={r.category.id} className="group border-t border-slate-50 hover:bg-slate-50/50">
-                          <td className="px-4 py-2">
+                          <td className="max-w-0 py-2 pl-3 pr-1 sm:max-w-none sm:px-4">
                             <div className="flex items-center gap-2">
                               <span className="text-base">{r.category.icon}</span>
                               <div className="min-w-0">
-                                <button className="truncate font-medium hover:text-brand-700" onClick={() => navigate('buchungen', { cat: String(r.category.id), month })}>
+                                <button className="block max-w-full truncate text-left font-medium hover:text-brand-700" onClick={() => navigate('buchungen', { cat: String(r.category.id), month })}>
                                   {r.category.name}
                                 </button>
                                 {progress !== null && (
                                   <div className="mt-1 flex items-center gap-2">
-                                    <div className="h-1.5 w-24 overflow-hidden rounded-full bg-slate-100">
+                                    <div className="h-1.5 w-12 shrink-0 overflow-hidden sm:w-24 rounded-full bg-slate-100">
                                       <div className="h-full rounded-full bg-brand-500" style={{ width: `${progress}%` }} />
                                     </div>
-                                    <span className="text-[11px] text-slate-400">Ziel {money(goal)}</span>
+                                    <span className="truncate text-[11px] text-slate-400">Ziel {money(goal)}</span>
                                   </div>
+                                )}
+                                {r.activity !== 0 && (
+                                  <div className="num truncate text-[11px] text-slate-400 sm:hidden">Aktivität {money(r.activity)}</div>
                                 )}
                               </div>
                             </div>
                           </td>
-                          <td className="px-2 py-1.5">
+                          <td className="px-1 py-1.5 sm:px-2">
                             <MoneyInput value={r.assigned} onCommit={(c) => setAssigned(month, r.category.id!, c)} />
                           </td>
-                          <td className="num px-2 py-2 text-right text-slate-500">{r.activity ? money(r.activity) : '–'}</td>
-                          <td className="px-4 py-2 text-right">
+                          <td className="num hidden px-2 py-2 text-right text-slate-500 sm:table-cell">{r.activity ? money(r.activity) : '–'}</td>
+                          <td className="py-2 pl-1 pr-3 text-right sm:px-4">
                             <div className="flex items-center justify-end gap-1.5">
                               {r.available < 0 && (
                                 <button
@@ -207,7 +210,7 @@ export default function Budget({ data }: { data: AppData }) {
                                   : setMove({ from: r.category.id }))}
                                 title={r.available < 0 ? 'Ausgleichen' : 'Geld verschieben'}
                                 className={cx(
-                                  'num rounded-full px-2.5 py-1 text-xs font-semibold transition hover:ring-2',
+                                  'num whitespace-nowrap rounded-full px-2 py-1 text-xs font-semibold transition hover:ring-2 sm:px-2.5',
                                   r.available < 0 && 'bg-rose-100 text-rose-700 hover:ring-rose-200',
                                   r.available === 0 && 'bg-slate-100 text-slate-500 hover:ring-slate-200',
                                   r.available > 0 && (goal > 0 && r.available < goal ? 'bg-amber-100 text-amber-800 hover:ring-amber-200' : 'bg-emerald-100 text-emerald-700 hover:ring-emerald-200'),
@@ -291,9 +294,9 @@ function bestSource(rows: ReturnType<typeof computeBudget>['rows'], exclude: num
 
 function MiniStat({ label, value, tone }: { label: string; value: string; tone?: string }) {
   return (
-    <div className="card px-4 py-3">
-      <div className="text-xs text-slate-500">{label}</div>
-      <div className={cx('num mt-0.5 text-lg font-semibold', tone)}>{value}</div>
+    <div className="card px-3 py-2.5 sm:px-4 sm:py-3">
+      <div className="text-[11px] leading-tight text-slate-500 sm:text-xs">{label}</div>
+      <div className={cx('num mt-1 text-sm font-semibold [overflow-wrap:anywhere] sm:mt-0.5 sm:text-lg', tone)}>{value}</div>
     </div>
   )
 }
