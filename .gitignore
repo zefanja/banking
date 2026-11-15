@@ -1,0 +1,7 @@
+# Private Finanzdaten niemals committen
+*.csv
+*.CSV
+haushaltsbuch-backup-*.json
+
+node_modules
+dist
