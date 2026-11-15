@@ -28,8 +28,10 @@ CSV-Dateien und Backups sind per `.gitignore` vom Commit ausgeschlossen.
 
 ## Funktionen
 
-- **Import** von DKB-Umsatzlisten (CSV, auch mehrere Dateien gleichzeitig). Bereits importierte Buchungen werden über einen
-  Fingerabdruck erkannt und übersprungen. Vorgemerkte Umsätze werden erst nach der Buchung übernommen. Jeder Import lässt sich
+- **Import** von DKB-Umsatzlisten als CSV (Online-Banking) oder als PDF-Export aus der DKB-App, auch mehrere Dateien gleichzeitig.
+  Bereits importierte Buchungen werden über Buchungsdatum, Betrag, IBAN und Gegenseite erkannt und übersprungen, auch wenn sie
+  zuvor im jeweils anderen Format importiert wurden. Die PDF enthält keinen Kontostand. Den trägst du dann einmalig unter
+  *Einstellungen* ein. Vorgemerkte Umsätze werden erst nach der Buchung übernommen. Jeder Import lässt sich
   rückgängig machen.
 - **Kategorien** in Gruppen, mit Emoji, Farbe und optionalem Monatsziel. Ausgaben-Kategorien sind die Budget-Umschläge.
 - **Regeln** („Empfänger enthält ROSSMANN → Drogerie“) werden bei jedem Import automatisch angewendet. Wenn du eine Buchung
@@ -45,5 +47,6 @@ CSV-Dateien und Backups sind per `.gitignore` vom Commit ausgeschlossen.
 Vite, React, TypeScript, Tailwind CSS v4, Dexie (IndexedDB) und Recharts.
 
 - `src/lib/csv.ts`: CSV-Parser und Duplikat-Fingerabdruck
+- `src/lib/pdf.ts`: PDF-Parser (pdf.js, lokal eingebunden)
 - `src/lib/budget.ts`: Budgetberechnung (Zu verteilen, Übertrag, Verfügbar)
 - `src/lib/store.ts`: Import, Zuweisungen, Backup

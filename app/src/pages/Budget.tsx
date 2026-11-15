@@ -61,7 +61,7 @@ export default function Budget({ data }: { data: AppData }) {
   return (
     <>
       <PageHeader title="Budget" subtitle="Envelope Budgeting: Gib jedem Euro einen Job.">
-        <div className="flex items-center gap-1 rounded-xl bg-white p-1 shadow-sm ring-1 ring-slate-200/70">
+        <div className="flex items-center gap-1 rounded-xl bg-surface p-1 shadow-sm ring-1 ring-slate-200/70">
           <button className="btn-ghost p-1.5" onClick={() => setMonth(addMonths(month, -1))} aria-label="Vormonat"><ChevronLeft size={18} /></button>
           <span className="min-w-36 text-center text-sm font-semibold capitalize">{fmtMonth(month)}</span>
           <button className="btn-ghost p-1.5" onClick={() => setMonth(addMonths(month, 1))} aria-label="Nächster Monat"><ChevronRight size={18} /></button>

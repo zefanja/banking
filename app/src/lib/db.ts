@@ -1,11 +1,14 @@
 import Dexie, { type EntityTable } from 'dexie'
+import { withMatchKeys } from './csv'
 
 /** Beträge werden immer als ganze Cent gespeichert, um Rundungsfehler zu vermeiden. */
 export type Cents = number
 
 export interface Transaction {
-  /** Fingerabdruck aus den Buchungsdaten – dient der Duplikaterkennung. */
+  /** Fingerabdruck aus den Buchungsdaten (CSV) bzw. "pdf-…" für PDF-Importe. */
   id: string
+  /** Formatunabhängiger Schlüssel für die Duplikaterkennung zwischen CSV und PDF. */
+  matchKey: string
   date: string // Buchungsdatum, ISO yyyy-mm-dd
   valueDate: string
   payer: string
@@ -106,6 +109,16 @@ db.version(1).stores({
   imports: '++id, importedAt',
   meta: 'key',
 })
+
+// v2: matchKey für die Duplikaterkennung über Formate hinweg (CSV ↔ PDF)
+db.version(2)
+  .stores({ transactions: 'id, date, categoryId, amount, importId, matchKey' })
+  .upgrade(async (tx) => {
+    const all = (await tx.table('transactions').toArray()) as Transaction[]
+    // Die Nummerierung innerhalb gleicher Schlüssel ist beliebig – entscheidend ist nur die Anzahl
+    const keyed = withMatchKeys(all.sort((a, b) => a.id.localeCompare(b.id)))
+    for (const t of keyed) await tx.table('transactions').update(t.id, { matchKey: t.matchKey })
+  })
 
 /** Beim ersten Start ein paar sinnvolle Kategorien anlegen. */
 db.on('populate', async (tx) => {

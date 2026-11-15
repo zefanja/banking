@@ -5,6 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
     <title>Haushaltsbuch</title>
+    <script>
+      // Theme vor dem ersten Rendern setzen, damit die Seite nicht hell aufblitzt
+      try {
+        var p = JSON.parse(localStorage.getItem('hb:theme') || '"system"')
+        if (p === 'dark' || (p !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches))
+          document.documentElement.classList.add('dark')
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

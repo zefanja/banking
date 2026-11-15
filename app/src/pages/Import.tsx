@@ -5,7 +5,8 @@ import type { AppData } from '../lib/hooks'
 import { navigate } from '../lib/hooks'
 import { db } from '../lib/db'
 import { parseBankCsv, type ParseResult } from '../lib/csv'
-import { importParsed } from '../lib/store'
+import { filterNew, importParsed } from '../lib/store'
+import { parseDkbPdf } from '../lib/pdf'
 import { cx, fmtDate, money } from '../lib/format'
 import { Dialog, PageHeader, useToast } from '../components/ui'
 
@@ -31,12 +32,18 @@ export default function ImportPage({ data }: { data: AppData }) {
     for (const f of Array.from(files)) {
       try {
         const buf = await f.arrayBuffer()
-        // DKB liefert UTF-8; ältere Exporte sind teils ISO-8859-1
-        let text = new TextDecoder('utf-8').decode(buf)
-        if (text.includes('�')) text = new TextDecoder('iso-8859-1').decode(buf)
-        const parsed = parseBankCsv(text)
-        const existing = await db.transactions.bulkGet(parsed.transactions.map((t) => t.id))
-        out.push({ fileName: f.name, parsed, duplicates: existing.filter(Boolean).length })
+        const head = new TextDecoder('ascii').decode(buf.slice(0, 5))
+        let parsed: ParseResult
+        if (head === '%PDF-') {
+          parsed = await parseDkbPdf(buf)
+        } else {
+          // DKB liefert UTF-8; ältere Exporte sind teils ISO-8859-1
+          let text = new TextDecoder('utf-8').decode(buf)
+          if (text.includes('�')) text = new TextDecoder('iso-8859-1').decode(buf)
+          parsed = parseBankCsv(text)
+        }
+        const fresh = await filterNew(parsed)
+        out.push({ fileName: f.name, parsed, duplicates: parsed.transactions.length - fresh.length })
       } catch (e) {
         setError(`${f.name}: ${(e as Error).message}`)
       }
@@ -79,7 +86,7 @@ export default function ImportPage({ data }: { data: AppData }) {
 
   return (
     <>
-      <PageHeader title="Import" subtitle="Kontoauszüge als CSV einlesen. Doppelte Buchungen werden automatisch erkannt." />
+      <PageHeader title="Import" subtitle="Kontoauszüge als CSV oder PDF einlesen. Doppelte Buchungen werden automatisch erkannt." />
 
       <div
         onDragOver={(e) => { e.preventDefault(); setDrag(true) }}
@@ -91,15 +98,15 @@ export default function ImportPage({ data }: { data: AppData }) {
           drag ? 'border-brand-500 bg-brand-50' : 'border-slate-200 hover:border-brand-300 hover:bg-brand-50/30',
         )}
       >
-        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 text-white shadow-lg shadow-brand-600/20">
+        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-[#14b8a6] to-[#0f766e] text-white shadow-lg shadow-brand-600/20">
           <Upload size={24} />
         </div>
-        <div className="font-semibold">CSV-Datei hierher ziehen oder klicken</div>
-        <div className="mt-1 text-sm text-slate-500">DKB-Umsatzliste (z. B. „Umsatzliste_Girokonto…csv“) · mehrere Dateien möglich</div>
+        <div className="font-semibold">CSV- oder PDF-Datei hierher ziehen oder antippen</div>
+        <div className="mt-1 text-sm text-slate-500">DKB-Umsatzliste als CSV (Online-Banking) oder PDF-Export aus der DKB-App · mehrere Dateien möglich</div>
         <div className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
           <ShieldCheck size={14} /> Die Datei wird nur in deinem Browser verarbeitet
         </div>
-        <input ref={input} type="file" accept=".csv,text/csv" multiple hidden onChange={(e) => { if (e.target.files) readFiles(e.target.files); e.target.value = '' }} />
+        <input ref={input} type="file" accept=".csv,text/csv,.pdf,application/pdf" multiple hidden onChange={(e) => { if (e.target.files) readFiles(e.target.files); e.target.value = '' }} />
       </div>
 
       {error && <div className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>}
@@ -134,6 +141,15 @@ export default function ImportPage({ data }: { data: AppData }) {
                       <div className="num text-rose-600">{money(sumOut)}</div>
                     </div>
                   </div>
+                  {p.parsed.warning && (
+                    <p className="mt-3 rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-800">⚠️ {p.parsed.warning} Bitte prüfe die Buchungen nach dem Import.</p>
+                  )}
+                  {p.parsed.transactions[0]?.id.startsWith('pdf-') && !data.anchor && (
+                    <p className="mt-3 rounded-xl bg-slate-50 px-3 py-2 text-xs text-slate-600">
+                      Die PDF enthält keinen Kontostand. Damit Kontostand und „Zu verteilen“ stimmen, trage ihn nach dem Import einmalig unter
+                      <i> Einstellungen → Kontostand</i> ein.
+                    </p>
+                  )}
                 </div>
               )
             })}
@@ -174,10 +190,11 @@ export default function ImportPage({ data }: { data: AppData }) {
       )}
 
       <div className="mt-8 rounded-2xl bg-slate-100/70 p-4 text-xs leading-relaxed text-slate-500">
-        <b className="text-slate-600">So funktioniert die Duplikaterkennung:</b> Aus Datum, Wertstellung, Betrag, Zahler, Empfänger,
-        Verwendungszweck, IBAN und Referenzen wird ein Fingerabdruck berechnet. Kommt eine Buchung mehrfach identisch vor (z. B. zweimal
-        5 € am selben Tag beim selben Laden), werden diese durchnummeriert und bleiben erhalten. Du kannst also beliebig oft ganze Jahre
-        importieren: Bereits bekannte Buchungen werden übersprungen. Aktueller Bestand: {data.transactions.length} Buchungen.
+        <b className="text-slate-600">So funktioniert die Duplikaterkennung:</b> Jede Buchung wird über Buchungsdatum, Betrag, IBAN und
+        Namen der Gegenseite wiedererkannt. Diese Angaben stehen in CSV und PDF gleichermaßen, deshalb kannst du beide Formate mischen.
+        Kommt eine Buchung mehrfach identisch vor (z. B. zweimal 5 € am selben Tag beim selben Laden), werden diese durchnummeriert und
+        bleiben erhalten. Du kannst also beliebig oft ganze Jahre oder überlappende Zeiträume importieren: Bereits bekannte Buchungen
+        werden übersprungen. Aktueller Bestand: {data.transactions.length} Buchungen.
       </div>
 
       <Dialog open={undoId != null} onClose={() => setUndoId(null)} title="Import rückgängig machen?"

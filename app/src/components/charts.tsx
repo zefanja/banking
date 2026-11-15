@@ -2,6 +2,7 @@ import {
   Bar, BarChart, CartesianGrid, Cell, ComposedChart, Line, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis, Legend,
 } from 'recharts'
 import { money, moneyShort } from '../lib/format'
+import { useIsDark } from '../lib/theme'
 
 export const COLORS = {
   income: '#10b981',
@@ -18,10 +19,18 @@ const axisProps = {
   tickLine: false,
 } as const
 
+/** Rasterlinien, Hover-Fläche und Saldo-Linie passend zum Farbmodus. */
+function useChartTheme() {
+  const dark = useIsDark()
+  return dark
+    ? { grid: '#263246', cursor: '#1e293b', net: '#2dd4bf', legend: '#cbd5e1' }
+    : { grid: COLORS.grid, cursor: '#f1f5f9', net: COLORS.net, legend: '#475569' }
+}
+
 function TooltipBox({ active, payload, label }: { active?: boolean; payload?: Array<{ name: string; value: number; color: string }>; label?: string }) {
   if (!active || !payload?.length) return null
   return (
-    <div className="rounded-xl border border-slate-200 bg-white/95 px-3 py-2 text-sm shadow-lg backdrop-blur">
+    <div className="rounded-xl border border-slate-200 bg-surface/95 px-3 py-2 text-sm shadow-lg backdrop-blur">
       {label && <div className="mb-1 font-medium text-slate-700">{label}</div>}
       {payload.filter((p) => p.value !== 0).map((p) => (
         <div key={p.name} className="flex items-center justify-between gap-6">
@@ -38,17 +47,18 @@ function TooltipBox({ active, payload, label }: { active?: boolean; payload?: Ar
 
 /** Einnahmen vs. Ausgaben als Balken, Saldo als Linie. Werte in Euro (nicht Cent). */
 export function IncomeExpenseChart({ data, height = 300 }: { data: Array<{ label: string; Einnahmen: number; Ausgaben: number; Saldo: number }>; height?: number }) {
+  const t = useChartTheme()
   return (
     <ResponsiveContainer width="100%" height={height}>
       <ComposedChart data={data} margin={{ top: 10, right: 8, left: 0, bottom: 0 }} barGap={2}>
-        <CartesianGrid stroke={COLORS.grid} vertical={false} strokeDasharray="3 3" />
+        <CartesianGrid stroke={t.grid} vertical={false} strokeDasharray="3 3" />
         <XAxis dataKey="label" {...axisProps} minTickGap={8} />
         <YAxis {...axisProps} width={64} tickFormatter={(v) => moneyShort(v * 100)} />
-        <Tooltip content={<TooltipBox />} cursor={{ fill: '#f1f5f9' }} />
+        <Tooltip content={<TooltipBox />} cursor={{ fill: t.cursor }} />
         <Legend iconType="circle" wrapperStyle={{ fontSize: 12, paddingTop: 8 }} />
         <Bar dataKey="Einnahmen" fill={COLORS.income} radius={[6, 6, 0, 0]} maxBarSize={28} animationDuration={500} />
         <Bar dataKey="Ausgaben" fill={COLORS.expense} radius={[6, 6, 0, 0]} maxBarSize={28} animationDuration={500} />
-        <Line dataKey="Saldo" type="monotone" stroke={COLORS.net} strokeWidth={2.5} dot={false} animationDuration={500} />
+        <Line dataKey="Saldo" type="monotone" stroke={t.net} strokeWidth={2.5} dot={false} animationDuration={500} />
       </ComposedChart>
     </ResponsiveContainer>
   )
@@ -62,13 +72,14 @@ export function StackedCategoryChart({
   series: Array<{ key: string; name: string; color: string }>
   height?: number
 }) {
+  const t = useChartTheme()
   return (
     <ResponsiveContainer width="100%" height={height}>
       <BarChart data={data} margin={{ top: 10, right: 8, left: 0, bottom: 0 }}>
-        <CartesianGrid stroke={COLORS.grid} vertical={false} strokeDasharray="3 3" />
+        <CartesianGrid stroke={t.grid} vertical={false} strokeDasharray="3 3" />
         <XAxis dataKey="label" {...axisProps} minTickGap={8} />
         <YAxis {...axisProps} width={64} tickFormatter={(v) => moneyShort(v * 100)} />
-        <Tooltip content={<TooltipBox />} cursor={{ fill: '#f1f5f9' }} />
+        <Tooltip content={<TooltipBox />} cursor={{ fill: t.cursor }} />
         {series.map((s, i) => (
           <Bar key={s.key} dataKey={s.key} name={s.name} stackId="a" fill={s.color} maxBarSize={36} animationDuration={500}
             radius={i === series.length - 1 ? [6, 6, 0, 0] : [0, 0, 0, 0]} />
@@ -84,7 +95,7 @@ export function Donut({ data, height = 260, centerLabel, centerValue }: { data: 
       <ResponsiveContainer width="100%" height="100%">
         <PieChart>
           <Tooltip content={<TooltipBox />} />
-          <Pie data={data} dataKey="value" nameKey="name" innerRadius="62%" outerRadius="92%" paddingAngle={2} stroke="none" cornerRadius={4} animationDuration={500}>
+          <Pie data={data} dataKey="value" nameKey="name" innerRadius="62%" outerRadius="92%" paddingAngle={2} stroke="none" cornerRadius={4} isAnimationActive={false}>
             {data.map((d) => <Cell key={d.name} fill={d.color} />)}
           </Pie>
         </PieChart>

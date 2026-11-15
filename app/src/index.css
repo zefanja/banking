@@ -8,6 +8,61 @@
   --color-brand-500: #14b8a6;
   --color-brand-600: #0d9488;
   --color-brand-700: #0f766e;
+  /* Kartenfläche – im Dark Mode dunkel, während "white" für Text auf Farbflächen weiß bleibt */
+  --color-surface: #ffffff;
+  /* Dunkle Fläche für Toasts & Auswahlleiste (in beiden Modi dunkel) */
+  --color-ink: #0f172a;
+}
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Dark Mode: Statt überall dark:-Klassen zu setzen, werden die verwendeten Farbskalen umdefiniert.
+ * Slate wird invertiert, helle Tönungen (…-50/100/200) werden zu transparenten Farbschleiern,
+ * dunkle Textfarben (…-700/800) werden aufgehellt.
+ */
+.dark {
+  color-scheme: dark;
+  --color-surface: #131c2e;
+  --color-ink: #334155;
+
+  --color-slate-50: #0b1120;
+  --color-slate-100: #1e293b;
+  --color-slate-200: #2c3a50;
+  --color-slate-300: #475569;
+  --color-slate-400: #64748b;
+  --color-slate-500: #94a3b8;
+  --color-slate-600: #cbd5e1;
+  --color-slate-700: #e2e8f0;
+  --color-slate-800: #f1f5f9;
+  --color-slate-900: #f8fafc;
+
+  --color-brand-50: color-mix(in oklab, #14b8a6 14%, transparent);
+  --color-brand-100: color-mix(in oklab, #14b8a6 24%, transparent);
+  --color-brand-200: color-mix(in oklab, #14b8a6 34%, transparent);
+  --color-brand-600: #14b8a6;
+  --color-brand-700: #5eead4;
+
+  --color-emerald-50: color-mix(in oklab, #10b981 14%, transparent);
+  --color-emerald-100: color-mix(in oklab, #10b981 24%, transparent);
+  --color-emerald-200: color-mix(in oklab, #10b981 34%, transparent);
+  --color-emerald-600: #34d399;
+  --color-emerald-700: #6ee7b7;
+
+  --color-rose-50: color-mix(in oklab, #f43f5e 14%, transparent);
+  --color-rose-100: color-mix(in oklab, #f43f5e 24%, transparent);
+  --color-rose-200: color-mix(in oklab, #f43f5e 34%, transparent);
+  --color-rose-600: #fb7185;
+  --color-rose-700: #fda4af;
+  --color-rose-800: #fecdd3;
+
+  --color-amber-50: color-mix(in oklab, #f59e0b 14%, transparent);
+  --color-amber-100: color-mix(in oklab, #f59e0b 24%, transparent);
+  --color-amber-200: color-mix(in oklab, #f59e0b 34%, transparent);
+  --color-amber-300: color-mix(in oklab, #f59e0b 50%, transparent);
+  --color-amber-600: #fbbf24;
+  --color-amber-700: #fcd34d;
+  --color-amber-800: #fde68a;
 }
 
 html,
@@ -17,7 +72,7 @@ body,
 }
 
 body {
-  @apply bg-slate-50 text-slate-800 antialiased;
+  @apply bg-slate-50 text-slate-800 antialiased transition-colors;
   font-feature-settings: 'tnum' 1, 'cv11' 1;
 }
 
@@ -28,25 +83,25 @@ body {
 
 @layer components {
   .card {
-    @apply rounded-2xl border border-slate-200/70 bg-white shadow-sm;
+    @apply rounded-2xl border border-slate-200/70 bg-surface shadow-sm;
   }
 
 
   .btn-primary {
-    @apply btn bg-brand-600 text-white shadow-sm hover:bg-brand-700;
+    @apply btn bg-[#0d9488] text-white shadow-sm hover:bg-[#0f766e];
   }
   .btn-ghost {
     @apply btn text-slate-600 hover:bg-slate-100;
   }
   .btn-outline {
-    @apply btn border border-slate-200 bg-white text-slate-700 hover:bg-slate-50;
+    @apply btn border border-slate-200 bg-surface text-slate-700 hover:bg-slate-50;
   }
   .btn-danger {
-    @apply btn bg-rose-600 text-white hover:bg-rose-700;
+    @apply btn bg-[#e11d48] text-white hover:bg-[#be123c];
   }
 
   .input {
-    @apply w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition
+    @apply w-full rounded-xl border border-slate-200 bg-surface px-3 py-2 text-sm outline-none transition
       placeholder:text-slate-400 focus:border-brand-500 focus:ring-4 focus:ring-brand-100;
   }
 
@@ -65,7 +120,7 @@ body {
     @apply rounded-lg px-3 py-1.5 text-sm font-medium text-slate-500 transition hover:text-slate-800;
   }
   .seg > button[data-active='true'] {
-    @apply bg-white text-slate-900 shadow-sm;
+    @apply bg-surface text-slate-900 shadow-sm;
   }
 }
 

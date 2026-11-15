@@ -23,7 +23,7 @@ export function Dialog({
   }, [open, onClose])
   if (!open) return null
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/40 p-4 backdrop-blur-[2px] sm:items-center" onMouseDown={onClose}>
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-4 backdrop-blur-[2px] sm:items-center" onMouseDown={onClose}>
       <div
         className={cx('card max-h-[90vh] w-full overflow-hidden flex flex-col animate-[pop_.15s_ease-out]', wide ? 'max-w-2xl' : 'max-w-md')}
         onMouseDown={(e) => e.stopPropagation()}
@@ -70,7 +70,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             key={t.id}
             className={cx(
               'pointer-events-auto flex items-center gap-3 rounded-xl px-4 py-3 text-sm text-white shadow-lg animate-[pop_.15s_ease-out]',
-              t.tone === 'error' ? 'bg-rose-600' : 'bg-slate-900',
+              t.tone === 'error' ? 'bg-[#e11d48]' : 'bg-ink',
             )}
           >
             <div className="flex-1">{t.text}</div>

@@ -162,7 +162,7 @@ export default function Transactions({ data, params }: { data: AppData; params: 
       </div>
 
       {selected.size > 0 && (
-        <div className="sticky top-[70px] z-30 mb-3 flex flex-wrap items-center gap-3 rounded-2xl bg-slate-900 px-4 py-2.5 text-sm text-white shadow-lg lg:top-2">
+        <div className="sticky top-[70px] z-30 mb-3 flex flex-wrap items-center gap-3 rounded-2xl bg-ink px-4 py-2.5 text-sm text-white shadow-lg lg:top-2">
           <span><b>{selected.size}</b> ausgewählt</span>
           <div className="w-64 text-slate-800">
             <CategorySelect value={null} onChange={bulkSet} categories={data.categories} groups={data.groups} emptyLabel="Kategorie zuweisen …" />

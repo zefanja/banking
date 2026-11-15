@@ -4,6 +4,7 @@ import {
 } from 'lucide-react'
 import { useData, useHashRoute } from './lib/hooks'
 import { cx, money } from './lib/format'
+import { ThemeToggle } from './components/ThemeToggle'
 import Dashboard from './pages/Dashboard'
 import Budget from './pages/Budget'
 import Transactions from './pages/Transactions'
@@ -68,7 +69,7 @@ export default function App() {
 
   const brand = (
     <div className="flex items-center gap-3 px-2">
-      <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 text-white shadow-md shadow-brand-600/20">
+      <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-[#14b8a6] to-[#0f766e] text-white shadow-md shadow-brand-600/20">
         <Wallet size={20} />
       </div>
       <div>
@@ -81,10 +82,11 @@ export default function App() {
   return (
     <div className="flex h-full">
       {/* Sidebar Desktop */}
-      <aside className="hidden w-64 shrink-0 flex-col gap-8 border-r border-slate-200/70 bg-white/70 p-4 backdrop-blur lg:flex">
+      <aside className="hidden w-64 shrink-0 flex-col gap-8 border-r border-slate-200/70 bg-surface/70 p-4 backdrop-blur lg:flex">
         {brand}
         {nav}
-        <div className="mt-auto rounded-2xl bg-gradient-to-br from-brand-50 to-emerald-50 p-4">
+        <ThemeToggle compact className="mt-auto flex" />
+        <div className="-mt-5 rounded-2xl bg-gradient-to-br from-brand-50 to-emerald-50 p-4">
           <div className="text-xs font-medium text-brand-700">Kontostand</div>
           <div className="num mt-1 text-xl font-semibold text-slate-900">{money(data.balance)}</div>
           <div className="mt-1 text-xs text-slate-500">laut importierten Buchungen</div>
@@ -92,14 +94,17 @@ export default function App() {
       </aside>
 
       {/* Mobile */}
-      <div className="fixed inset-x-0 top-0 z-40 flex items-center justify-between border-b border-slate-200 bg-white/90 px-4 py-3 backdrop-blur lg:hidden">
+      <div className="fixed inset-x-0 top-0 z-40 flex items-center justify-between border-b border-slate-200 bg-surface/90 px-4 py-3 backdrop-blur lg:hidden">
         {brand}
         <button className="btn-ghost p-2" onClick={() => setMobileOpen((v) => !v)} aria-label="Menü">
           {mobileOpen ? <X size={20} /> : <Menu size={20} />}
         </button>
       </div>
       {mobileOpen && (
-        <div className="fixed inset-x-0 top-[65px] z-40 border-b border-slate-200 bg-white p-3 shadow-lg lg:hidden">{nav}</div>
+        <div className="fixed inset-x-0 top-[65px] z-40 border-b border-slate-200 bg-surface p-3 shadow-lg lg:hidden">
+          {nav}
+          <ThemeToggle className="mt-3 flex" />
+        </div>
       )}
 
       <main className="flex-1 overflow-y-auto pt-[65px] lg:pt-0">

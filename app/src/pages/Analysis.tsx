@@ -160,7 +160,7 @@ export default function Analysis({ data }: { data: AppData }) {
       <div className="card overflow-hidden">
         <div className="max-h-[520px] overflow-auto">
           <table className="w-full min-w-[560px] text-sm">
-            <thead className="sticky top-0 bg-white">
+            <thead className="sticky top-0 bg-surface">
               <tr className="border-b border-slate-100 text-left text-xs uppercase tracking-wide text-slate-400">
                 <th className="px-4 py-3 font-medium">{unit}</th>
                 <th className="px-4 py-3 text-right font-medium">Einnahmen</th>

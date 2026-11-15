@@ -13,6 +13,8 @@ export interface ParseResult {
   balance: { date: string; amount: number } | null
   transactions: ParsedTx[]
   pendingCount: number
+  /** Hinweis, z. B. wenn die erkannte Anzahl nicht zur Angabe im Dokument passt. */
+  warning?: string
 }
 
 /** Mögliche Spaltennamen (neues und altes DKB-Format, plus generische Varianten). */
@@ -42,7 +44,7 @@ export function parseGermanDate(s: string): string | null {
 }
 
 /** Schneller, stabiler 53-Bit-Hash (cyrb53). */
-function hash(str: string) {
+export function hash(str: string) {
   let h1 = 0xdeadbeef, h2 = 0x41c6ce57
   for (let i = 0; i < str.length; i++) {
     const ch = str.charCodeAt(i)
@@ -55,6 +57,28 @@ function hash(str: string) {
 }
 
 const norm = (s: string) => s.trim().replace(/\s+/g, ' ').toLowerCase()
+
+/**
+ * Formatunabhängiger Abgleichschlüssel – nur Felder, die CSV *und* PDF enthalten:
+ * Buchungsdatum, Betrag, IBAN der Gegenseite und Name der Gegenseite (ohne Leerzeichen,
+ * damit Zeilenumbrüche im PDF keine Rolle spielen).
+ */
+export function canonicalKey(t: { date: string; amount: number; iban: string; counterparty: string }) {
+  // Nur echte IBANs – die DKB-CSV enthält bei Abrechnungen z. B. die eigene Kontonummer, das PDF gar nichts
+  const iban = t.iban.replace(/\s/g, '').toUpperCase()
+  return [t.date, t.amount, /^[A-Z]{2}\d{2}[A-Z0-9]{8,}$/.test(iban) ? iban : '', t.counterparty.replace(/\s+/g, '').toLowerCase()].join('|')
+}
+
+/** Vergibt matchKeys inkl. laufender Nummer für identische Buchungen innerhalb einer Datei. */
+export function withMatchKeys<T extends { date: string; amount: number; iban: string; counterparty: string }>(txs: T[]) {
+  const seen = new Map<string, number>()
+  return txs.map((t) => {
+    const k = canonicalKey(t)
+    const n = (seen.get(k) ?? 0) + 1
+    seen.set(k, n)
+    return { ...t, matchKey: `${hash(k)}-${n}` }
+  })
+}
 
 export function parseBankCsv(text: string): ParseResult {
   const clean = text.replace(/^﻿/, '')
@@ -152,8 +176,8 @@ export function parseBankCsv(text: string): ParseResult {
     const n = (occurrences.get(key) ?? 0) + 1
     occurrences.set(key, n)
 
-    transactions.push({ id: `${hash(key)}-${n}`, ...t })
+    transactions.push({ id: `${hash(key)}-${n}`, matchKey: '', ...t })
   }
 
-  return { accountName, iban, periodFrom, periodTo, balance, transactions, pendingCount }
+  return { accountName, iban, periodFrom, periodTo, balance, transactions: withMatchKeys(transactions), pendingCount }
 }

@@ -14,12 +14,22 @@ export interface ImportOutcome {
   autoCategorized: number
 }
 
+/**
+ * Neue Buchungen ermitteln. Duplikat ist, was dieselbe ID hat (gleiche Datei erneut importiert)
+ * oder denselben formatunabhängigen matchKey (dieselbe Buchung kam schon per CSV bzw. PDF).
+ */
+export async function filterNew(parsed: ParseResult) {
+  const ids = parsed.transactions.map((t) => t.id)
+  const byId = await db.transactions.bulkGet(ids)
+  const keys = await db.transactions.where('matchKey').anyOf(parsed.transactions.map((t) => t.matchKey)).toArray()
+  const knownKeys = new Set(keys.map((t) => t.matchKey))
+  return parsed.transactions.filter((t, i) => !byId[i] && !knownKeys.has(t.matchKey))
+}
+
 export async function importParsed(parsed: ParseResult, fileName: string): Promise<ImportOutcome> {
   const rules = await db.rules.toArray()
   return db.transaction('rw', [db.transactions, db.imports, db.meta], async () => {
-    const ids = parsed.transactions.map((t) => t.id)
-    const existing = await db.transactions.bulkGet(ids)
-    const fresh = parsed.transactions.filter((_, i) => !existing[i])
+    const fresh = await filterNew(parsed)
 
     const importId = (await db.imports.add({
       fileName,
