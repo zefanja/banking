@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useMemo, useState } from 'react'
 import { Search, ListOrdered, ChevronDown, Wand2, CheckCircle2, X } from 'lucide-react'
 import type { AppData } from '../lib/hooks'
+import { useMediaQuery } from '../lib/hooks'
 import { db, type Transaction } from '../lib/db'
 import { allocatedForTx, isBudgetIncome } from '../lib/budget'
 import { applyRules } from '../lib/rules'
@@ -9,7 +10,9 @@ import { Amount, CategorySelect, Empty, PageHeader, useToast } from '../componen
 import { RuleDialog, suggestPattern, type RuleDraft } from '../components/RuleDialog'
 import { AllocateDialog } from '../components/BudgetDialogs'
 
-const PAGE = 150
+/** Wie viele Buchungen auf einmal gerendert werden (auf dem Handy weniger, damit es flüssig bleibt). */
+const PAGE_DESKTOP = 150
+const PAGE_MOBILE = 50
 
 export default function Transactions({ data, params }: { data: AppData; params: URLSearchParams }) {
   const toast = useToast()
@@ -17,6 +20,8 @@ export default function Transactions({ data, params }: { data: AppData; params: 
   const [period, setPeriod] = useState(params.get('month') ?? '')
   const [cat, setCat] = useState(params.get('cat') ?? '')
   const [dir, setDir] = useState<'all' | 'in' | 'out'>('all')
+  const mobile = useMediaQuery('(max-width: 639px)')
+  const PAGE = mobile ? PAGE_MOBILE : PAGE_DESKTOP
   const [limit, setLimit] = useState(PAGE)
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [expanded, setExpanded] = useState<string | null>(null)
@@ -83,9 +88,7 @@ export default function Transactions({ data, params }: { data: AppData; params: 
 
   const bulkSet = async (categoryId: number | null) => {
     const ids = [...selected]
-    await db.transaction('rw', db.transactions, async () => {
-      for (const id of ids) await db.transactions.update(id, { categoryId })
-    })
+    await db.transactions.bulkUpdate(ids.map((id) => ({ key: id, changes: { categoryId } })))
     await dropAllocationsIfNotIncome(ids, categoryId)
     toast({ text: `${ids.length} Buchung(en) aktualisiert.` })
     setSelected(new Set())
@@ -207,14 +210,14 @@ export default function Transactions({ data, params }: { data: AppData; params: 
                           </div>
                           <ChevronDown size={14} className={cx('shrink-0 text-slate-300 transition', isOpen && 'rotate-180')} />
                         </button>
-                        <div className="mt-1.5 sm:hidden">
+                        {mobile && <div className="mt-1.5">
                           <CategorySelect value={t.categoryId} onChange={(id) => setCategory(t, id)} categories={data.categories} groups={data.groups}
                             className={cx('py-1.5', t.categoryId == null && 'border-amber-300 bg-amber-50')} />
-                        </div>
+                        </div>}
                       </td>
                       <td className="hidden px-2 py-2 sm:table-cell">
-                        <CategorySelect value={t.categoryId} onChange={(id) => setCategory(t, id)} categories={data.categories} groups={data.groups}
-                          className={t.categoryId == null ? 'border-amber-300 bg-amber-50' : ''} />
+                        {!mobile && <CategorySelect value={t.categoryId} onChange={(id) => setCategory(t, id)} categories={data.categories} groups={data.groups}
+                          className={t.categoryId == null ? 'border-amber-300 bg-amber-50' : ''} />}
                       </td>
                       <td className="py-2.5 pl-1 pr-3 text-right align-top sm:px-4 sm:align-middle">
                         <Amount value={t.amount} plus className="whitespace-nowrap font-semibold" />

@@ -90,7 +90,10 @@ export interface Meta {
   value: unknown
 }
 
-export const db = new Dexie('haushaltsbuch') as Dexie & {
+// Dexies optimistischer Cache berechnet jede Live-Abfrage schon während einer Transaktion
+// nach jeder einzelnen Änderung neu. Bei Tausenden Buchungen blockiert das die Oberfläche.
+// Ohne Cache werden Live-Abfragen einfach einmal nach dem Abschluss der Transaktion neu geladen.
+export const db = new Dexie('haushaltsbuch', { cache: 'disabled' }) as Dexie & {
   transactions: EntityTable<Transaction, 'id'>
   groups: EntityTable<Group, 'id'>
   categories: EntityTable<Category, 'id'>

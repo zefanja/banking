@@ -165,14 +165,26 @@ export function CategorySelect({
   emptyLabel?: string
   className?: string
 }) {
-  const gs = [...groups].filter((g) => !kind || g.kind === kind).sort((a, b) => a.sort - b.sort)
+  // Die vollständige Liste wird erst erzeugt, wenn jemand die Auswahl antippt oder fokussiert.
+  // Auf der Buchungsseite stehen sonst Tausende <option>-Elemente im DOM, und jede Änderung
+  // an den Daten lässt den Browser (vor allem auf dem Handy) sekundenlang hängen.
+  const [armed, setArmed] = useState(false)
+  const arm = () => { if (!armed) setArmed(true) }
+  const current = value != null ? categories.find((c) => c.id === value) : undefined
+  const gs = armed ? [...groups].filter((g) => !kind || g.kind === kind).sort((a, b) => a.sort - b.sort) : []
   return (
     <select
       className={cx('input py-1.5', className)}
       value={value ?? ''}
       onChange={(e) => onChange(e.target.value === '' ? null : Number(e.target.value))}
+      onPointerDown={arm}
+      onTouchStart={arm}
+      onMouseDown={arm}
+      onFocus={arm}
+      onKeyDown={arm}
     >
-      {allowEmpty && <option value="">{emptyLabel}</option>}
+      {(allowEmpty || value == null) && <option value="">{emptyLabel}</option>}
+      {!armed && current && <option value={current.id}>{current.icon} {current.name}</option>}
       {gs.map((g) => (
         <optgroup key={g.id} label={g.name}>
           {categories

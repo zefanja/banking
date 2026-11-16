@@ -60,6 +60,19 @@ export function navigate(path: string, params?: Record<string, string>) {
   location.hash = `#/${path}${q}`
 }
 
+/** true, solange die Media Query zutrifft (z. B. '(max-width: 639px)' für Handys). */
+export function useMediaQuery(query: string) {
+  const [match, setMatch] = useState(() => window.matchMedia(query).matches)
+  useEffect(() => {
+    const m = window.matchMedia(query)
+    const on = () => setMatch(m.matches)
+    on()
+    m.addEventListener('change', on)
+    return () => m.removeEventListener('change', on)
+  }, [query])
+  return match
+}
+
 /** Zustand, der sich im localStorage merkt (z. B. gewählter Monat). */
 export function usePersistentState<T>(key: string, initial: T) {
   const [v, setV] = useState<T>(() => {

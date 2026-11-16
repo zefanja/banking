@@ -40,9 +40,9 @@ export function RuleDialog({ draft, onClose, data }: { draft: RuleDraft | null; 
     else await db.rules.add(r)
     let n = 0
     if (applyExisting && toChange.length) {
-      await db.transaction('rw', db.transactions, async () => {
-        for (const t of toChange) await db.transactions.update(t.id, { categoryId: r.categoryId })
-      })
+      // Eine einzige Massenänderung statt vieler Einzel-Updates: Sonst rendert die Oberfläche
+      // nach jedem Update neu und friert bei vielen Treffern sekundenlang ein.
+      await db.transactions.bulkUpdate(toChange.map((t) => ({ key: t.id, changes: { categoryId: r.categoryId } })))
       n = toChange.length
     }
     toast({ text: `Regel gespeichert${n ? ` · ${n} Buchung(en) kategorisiert` : ''}.` })
