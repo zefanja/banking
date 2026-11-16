@@ -1,4 +1,4 @@
-import { db, getMeta, setMeta, type Cents, type Transaction } from './db'
+import { db, getMeta, setMeta, type Assignment, type Cents, type Transaction } from './db'
 import type { ParseResult } from './csv'
 import { findCategory } from './rules'
 
@@ -86,6 +86,22 @@ export async function setAssigned(month: string, categoryId: number, target: Cen
     const amount = target - fromIncome
     if (manual) await db.assignments.update(manual.id!, { amount })
     else await db.assignments.add({ month, categoryId, amount, txId: null })
+  })
+}
+
+/** Mehrere Umschläge eines Monats in einem Rutsch auf Zielwerte setzen (eine DB-Operation statt vieler). */
+export async function setAssignedMany(month: string, targets: Array<{ categoryId: number; amount: Cents }>) {
+  if (!targets.length) return
+  await db.transaction('rw', db.assignments, async () => {
+    const all = await db.assignments.where('month').equals(month).toArray()
+    const put: Assignment[] = []
+    for (const { categoryId, amount: target } of targets) {
+      const mine = all.filter((a) => a.categoryId === categoryId)
+      const fromIncome = mine.filter((a) => a.txId != null).reduce((s, a) => s + a.amount, 0)
+      const manual = mine.find((a) => a.txId == null)
+      put.push(manual ? { ...manual, amount: target - fromIncome } : { month, categoryId, amount: target - fromIncome, txId: null })
+    }
+    await db.assignments.bulkPut(put)
   })
 }
 

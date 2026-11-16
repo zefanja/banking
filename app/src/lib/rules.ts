@@ -24,17 +24,17 @@ export function findCategory(rules: Rule[], t: Pick<Transaction, 'counterparty' 
 export async function applyRules(onlyUncategorized = true) {
   const rules = await db.rules.toArray()
   if (!rules.length) return 0
-  let changed = 0
-  await db.transaction('rw', db.transactions, async () => {
+  const sorted = [...rules].sort((a, b) => b.createdAt - a.createdAt)
+  return db.transaction('rw', db.transactions, async () => {
     const all = await db.transactions.toArray()
+    const updates: Array<{ key: string; changes: { categoryId: number } }> = []
     for (const t of all) {
       if (onlyUncategorized && t.categoryId != null) continue
-      const cat = findCategory(rules, t)
-      if (cat != null && cat !== t.categoryId) {
-        await db.transactions.update(t.id, { categoryId: cat })
-        changed++
-      }
+      const cat = sorted.find((r) => ruleMatches(r, t))?.categoryId ?? null
+      if (cat != null && cat !== t.categoryId) updates.push({ key: t.id, changes: { categoryId: cat } })
     }
+    // Eine Massenänderung statt vieler Einzel-Updates (sonst friert die Oberfläche ein)
+    if (updates.length) await db.transactions.bulkUpdate(updates)
+    return updates.length
   })
-  return changed
 }

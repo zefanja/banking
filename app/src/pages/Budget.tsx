@@ -3,7 +3,7 @@ import { ChevronLeft, ChevronRight, ArrowLeftRight, Copy, Target, CheckCircle2, 
 import type { AppData } from '../lib/hooks'
 import { navigate, usePersistentState } from '../lib/hooks'
 import { allocatedForTx, computeBudget, isBudgetIncome } from '../lib/budget'
-import { setAssigned } from '../lib/store'
+import { setAssigned, setAssignedMany } from '../lib/store'
 import { addMonths, currentMonth, cx, fmtDate, fmtMonth, money, monthOf } from '../lib/format'
 import type { Transaction } from '../lib/db'
 import { MoneyInput, PageHeader, useToast } from '../components/ui'
@@ -32,26 +32,21 @@ export default function Budget({ data }: { data: AppData }) {
   const overspent = budget.rows.filter((r) => r.available < 0)
 
   const copyPrevious = async () => {
-    let n = 0
-    for (const r of budget.rows) {
+    const targets = budget.rows.flatMap((r) => {
       const prev = prevBudget.rows.find((p) => p.category.id === r.category.id)
-      if (prev && prev.assigned && !r.assigned) {
-        await setAssigned(month, r.category.id!, prev.assigned)
-        n++
-      }
-    }
+      return prev && prev.assigned && !r.assigned ? [{ categoryId: r.category.id!, amount: prev.assigned }] : []
+    })
+    await setAssignedMany(month, targets)
+    const n = targets.length
     toast({ text: n ? `${n} Umschläge wie im Vormonat befüllt.` : 'Nichts zu übernehmen – alle Umschläge haben schon Werte.' })
   }
 
   const fillGoals = async () => {
-    let n = 0
-    for (const r of budget.rows) {
-      const goal = r.category.goal
-      if (goal > 0 && r.assigned < goal) {
-        await setAssigned(month, r.category.id!, goal)
-        n++
-      }
-    }
+    const targets = budget.rows
+      .filter((r) => r.category.goal > 0 && r.assigned < r.category.goal)
+      .map((r) => ({ categoryId: r.category.id!, amount: r.category.goal }))
+    await setAssignedMany(month, targets)
+    const n = targets.length
     toast({ text: n ? `${n} Umschläge auf ihr Monatsziel gesetzt.` : 'Keine offenen Monatsziele. Ziele legst du unter „Kategorien“ fest.' })
   }
 
